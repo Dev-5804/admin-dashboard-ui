@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
+import { Plus, Pencil, Trash2, Search, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { useUserStore, User } from "@/lib/store";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
@@ -11,6 +11,9 @@ import { Modal } from "@/components/Modal";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/Table";
 import { UserForm } from "@/components/UserForm";
 
+type SortField = "name" | "email" | "status";
+type SortOrder = "asc" | "desc";
+
 export default function UsersPage() {
     const { users, isLoading, error, fetchUsers, addUser, updateUser, deleteUser } = useUserStore();
     const [search, setSearch] = useState("");
@@ -18,15 +21,65 @@ export default function UsersPage() {
     const [editingUser, setEditingUser] = useState<User | null>(null);
     const [deleteId, setDeleteId] = useState<string | null>(null);
 
+    // Sorting state
+    const [sortField, setSortField] = useState<SortField>("name");
+    const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
     useEffect(() => {
         fetchUsers();
     }, [fetchUsers]);
 
-    const filteredUsers = users.filter(
-        (user) =>
-            user.name.toLowerCase().includes(search.toLowerCase()) ||
-            user.email.toLowerCase().includes(search.toLowerCase())
-    );
+    // Filter users based on search
+    const filteredUsers = useMemo(() => {
+        return users.filter(
+            (user) =>
+                user.name.toLowerCase().includes(search.toLowerCase()) ||
+                user.email.toLowerCase().includes(search.toLowerCase())
+        );
+    }, [users, search]);
+
+    // Sort filtered users
+    const sortedUsers = useMemo(() => {
+        const sorted = [...filteredUsers].sort((a, b) => {
+            let aValue = a[sortField];
+            let bValue = b[sortField];
+
+            if (typeof aValue === "string") aValue = aValue.toLowerCase();
+            if (typeof bValue === "string") bValue = bValue.toLowerCase();
+
+            if (aValue < bValue) return sortOrder === "asc" ? -1 : 1;
+            if (aValue > bValue) return sortOrder === "asc" ? 1 : -1;
+            return 0;
+        });
+        return sorted;
+    }, [filteredUsers, sortField, sortOrder]);
+
+    // Paginate sorted users
+    const paginatedUsers = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        return sortedUsers.slice(startIndex, endIndex);
+    }, [sortedUsers, currentPage]);
+
+    const totalPages = Math.ceil(sortedUsers.length / itemsPerPage);
+
+    // Reset to page 1 when search changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [search]);
+
+    const handleSort = (field: SortField) => {
+        if (sortField === field) {
+            setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+        } else {
+            setSortField(field);
+            setSortOrder("asc");
+        }
+    };
 
     const handleAdd = () => {
         setEditingUser(null);
@@ -56,6 +109,10 @@ export default function UsersPage() {
             await addUser(data);
         }
         setIsModalOpen(false);
+    };
+
+    const goToPage = (page: number) => {
+        setCurrentPage(Math.max(1, Math.min(page, totalPages)));
     };
 
     return (
@@ -91,47 +148,105 @@ export default function UsersPage() {
                     ) : error ? (
                         <div className="text-center py-4 text-destructive">{ error }</div>
                     ) : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead className="hidden md:table-cell">Email</TableHead>
-                                    <TableHead className="hidden md:table-cell">Status</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                { filteredUsers.length === 0 ? (
+                        <>
+                            <Table>
+                                <TableHeader>
                                     <TableRow>
-                                        <TableCell colSpan={ 4 } className="text-center py-8 text-muted-foreground">
-                                            No users found.
-                                        </TableCell>
+                                        <TableHead>
+                                            <button
+                                                onClick={ () => handleSort("name") }
+                                                className="flex items-center gap-1 hover:text-foreground transition-colors"
+                                            >
+                                                Name
+                                                <ArrowUpDown className="h-3 w-3" />
+                                            </button>
+                                        </TableHead>
+                                        <TableHead className="hidden md:table-cell">
+                                            <button
+                                                onClick={ () => handleSort("email") }
+                                                className="flex items-center gap-1 hover:text-foreground transition-colors"
+                                            >
+                                                Email
+                                                <ArrowUpDown className="h-3 w-3" />
+                                            </button>
+                                        </TableHead>
+                                        <TableHead className="hidden md:table-cell">
+                                            <button
+                                                onClick={ () => handleSort("status") }
+                                                className="flex items-center gap-1 hover:text-foreground transition-colors"
+                                            >
+                                                Status
+                                                <ArrowUpDown className="h-3 w-3" />
+                                            </button>
+                                        </TableHead>
+                                        <TableHead className="text-right">Actions</TableHead>
                                     </TableRow>
-                                ) : (
-                                    filteredUsers.map((user) => (
-                                        <TableRow key={ user.id }>
-                                            <TableCell className="font-medium">{ user.name }</TableCell>
-                                            <TableCell className="hidden md:table-cell">{ user.email }</TableCell>
-                                            <TableCell className="hidden md:table-cell">
-                                                <Badge variant={ user.status === "Active" ? "success" : "secondary" }>
-                                                    { user.status }
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <div className="flex justify-end gap-2">
-                                                    <Button variant="ghost" size="icon" onClick={ () => handleEdit(user) }>
-                                                        <Pencil className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button variant="ghost" size="icon" onClick={ () => handleDeleteClick(user.id) } className="text-destructive hover:text-destructive">
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
+                                </TableHeader>
+                                <TableBody>
+                                    { paginatedUsers.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={ 4 } className="text-center py-8 text-muted-foreground">
+                                                No users found.
                                             </TableCell>
                                         </TableRow>
-                                    ))
-                                ) }
-                            </TableBody>
-                        </Table>
+                                    ) : (
+                                        paginatedUsers.map((user) => (
+                                            <TableRow key={ user.id }>
+                                                <TableCell className="font-medium">{ user.name }</TableCell>
+                                                <TableCell className="hidden md:table-cell">{ user.email }</TableCell>
+                                                <TableCell className="hidden md:table-cell">
+                                                    <Badge variant={ user.status === "Active" ? "success" : "secondary" }>
+                                                        { user.status }
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <div className="flex justify-end gap-2">
+                                                        <Button variant="ghost" size="icon" onClick={ () => handleEdit(user) }>
+                                                            <Pencil className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button variant="ghost" size="icon" onClick={ () => handleDeleteClick(user.id) } className="text-destructive hover:text-destructive">
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) }
+                                </TableBody>
+                            </Table>
+
+                            {/* Pagination Controls */ }
+                            { sortedUsers.length > 0 && (
+                                <div className="flex items-center justify-between mt-4">
+                                    <div className="text-sm text-muted-foreground">
+                                        Showing { ((currentPage - 1) * itemsPerPage) + 1 } to { Math.min(currentPage * itemsPerPage, sortedUsers.length) } of { sortedUsers.length } users
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={ () => goToPage(currentPage - 1) }
+                                            disabled={ currentPage === 1 }
+                                        >
+                                            <ChevronLeft className="h-4 w-4" />
+                                            Previous
+                                        </Button>
+                                        <div className="text-sm">
+                                            Page { currentPage } of { totalPages }
+                                        </div>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={ () => goToPage(currentPage + 1) }
+                                            disabled={ currentPage === totalPages }
+                                        >
+                                            Next
+                                            <ChevronRight className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+                            ) }
+                        </>
                     ) }
                 </CardContent>
             </Card>
