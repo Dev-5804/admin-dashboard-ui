@@ -1,172 +1,123 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Plus, Pencil, Trash2, Search } from "lucide-react";
-import { useUserStore, User } from "@/lib/store";
-import { Button } from "@/components/Button";
-import { Input } from "@/components/Input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/Card";
-import { Badge } from "@/components/Badge";
-import { Modal } from "@/components/Modal";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/Table";
-import { UserForm } from "@/components/UserForm";
+import { useEffect } from "react";
+import { Users, UserCheck, UserX, Activity } from "lucide-react";
+import { useUserStore } from "@/lib/store";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/Card";
 
-export default function DashboardPage() {
-    const { users, isLoading, error, fetchUsers, addUser, updateUser, deleteUser } = useUserStore();
-    const [search, setSearch] = useState("");
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingUser, setEditingUser] = useState<User | null>(null);
-    const [deleteId, setDeleteId] = useState<string | null>(null);
+export default function DashboardOverviewPage() {
+    const { users, fetchUsers } = useUserStore();
 
     useEffect(() => {
         fetchUsers();
     }, [fetchUsers]);
 
-    const filteredUsers = users.filter(
-        (user) =>
-            user.name.toLowerCase().includes(search.toLowerCase()) ||
-            user.email.toLowerCase().includes(search.toLowerCase())
-    );
-
-    const handleAdd = () => {
-        setEditingUser(null);
-        setIsModalOpen(true);
-    };
-
-    const handleEdit = (user: User) => {
-        setEditingUser(user);
-        setIsModalOpen(true);
-    };
-
-    const handleDeleteClick = (id: string) => {
-        setDeleteId(id);
-    };
-
-    const confirmDelete = async () => {
-        if (deleteId) {
-            await deleteUser(deleteId);
-            setDeleteId(null);
-        }
-    };
-
-    const handleFormSubmit = async (data: Omit<User, "id">) => {
-        if (editingUser) {
-            await updateUser(editingUser.id, data);
-        } else {
-            await addUser(data);
-        }
-        setIsModalOpen(false);
-    };
+    const totalUsers = users.length;
+    const activeUsers = users.filter((u) => u.status === "Active").length;
+    const inactiveUsers = users.filter((u) => u.status === "Inactive").length;
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Users</h1>
-                    <p className="text-muted-foreground">Manage your user base here.</p>
-                </div>
-                <Button onClick={ handleAdd }>
-                    <Plus className="mr-2 h-4 w-4" /> Add User
-                </Button>
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+                <p className="text-muted-foreground">Overview of your system status.</p>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <CardTitle>All Users</CardTitle>
-                        <div className="relative w-full max-w-xs">
-                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Search users..."
-                                value={ search }
-                                onChange={ (e) => setSearch(e.target.value) }
-                                className="pl-8"
-                            />
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{ totalUsers }</div>
+                        <p className="text-xs text-muted-foreground">
+                            +20.1% from last month
+                        </p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+                        <UserCheck className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{ activeUsers }</div>
+                        <p className="text-xs text-muted-foreground">
+                            Currently active on platform
+                        </p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Inactive Users</CardTitle>
+                        <UserX className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{ inactiveUsers }</div>
+                        <p className="text-xs text-muted-foreground">
+                            Requires attention
+                        </p>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">System Health</CardTitle>
+                        <Activity className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">98.2%</div>
+                        <p className="text-xs text-muted-foreground">
+                            Operational
+                        </p>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                <Card className="col-span-4">
+                    <CardHeader>
+                        <CardTitle>Recent Activity</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-8">
+                            { [1, 2, 3, 4, 5].map((i) => (
+                                <div key={ i } className="flex items-center">
+                                    <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center mr-4">
+                                        <span className="text-xs font-medium">U{ i }</span>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-sm font-medium leading-none">User Action { i }</p>
+                                        <p className="text-sm text-muted-foreground">
+                                            User performed an action on the platform.
+                                        </p>
+                                    </div>
+                                    <div className="ml-auto font-medium text-sm text-muted-foreground">
+                                        { i }h ago
+                                    </div>
+                                </div>
+                            )) }
                         </div>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    { isLoading ? (
-                        <div className="text-center py-4">Loading...</div>
-                    ) : error ? (
-                        <div className="text-center py-4 text-destructive">{ error }</div>
-                    ) : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Name</TableHead>
-                                    <TableHead>Email</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                { filteredUsers.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell colSpan={ 4 } className="text-center py-8 text-muted-foreground">
-                                            No users found.
-                                        </TableCell>
-                                    </TableRow>
-                                ) : (
-                                    filteredUsers.map((user) => (
-                                        <TableRow key={ user.id }>
-                                            <TableCell className="font-medium">{ user.name }</TableCell>
-                                            <TableCell>{ user.email }</TableCell>
-                                            <TableCell>
-                                                <Badge variant={ user.status === "Active" ? "success" : "secondary" }>
-                                                    { user.status }
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell className="text-right">
-                                                <div className="flex justify-end gap-2">
-                                                    <Button variant="ghost" size="icon" onClick={ () => handleEdit(user) }>
-                                                        <Pencil className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button variant="ghost" size="icon" onClick={ () => handleDeleteClick(user.id) } className="text-destructive hover:text-destructive">
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                ) }
-                            </TableBody>
-                        </Table>
-                    ) }
-                </CardContent>
-            </Card>
-
-            {/* Add/Edit User Modal */ }
-            <Modal
-                isOpen={ isModalOpen }
-                onClose={ () => setIsModalOpen(false) }
-                title={ editingUser ? "Edit User" : "Add New User" }
-            >
-                <UserForm
-                    user={ editingUser }
-                    onSubmit={ handleFormSubmit }
-                    onCancel={ () => setIsModalOpen(false) }
-                />
-            </Modal>
-
-            {/* Delete Confirmation Modal */ }
-            <Modal
-                isOpen={ !!deleteId }
-                onClose={ () => setDeleteId(null) }
-                title="Confirm Deletion"
-            >
-                <div className="space-y-4">
-                    <p>Are you sure you want to delete this user? This action cannot be undone.</p>
-                    <div className="flex justify-end gap-2">
-                        <Button variant="outline" onClick={ () => setDeleteId(null) }>
-                            Cancel
-                        </Button>
-                        <Button variant="destructive" onClick={ confirmDelete }>
-                            Delete
-                        </Button>
-                    </div>
-                </div>
-            </Modal>
+                    </CardContent>
+                </Card>
+                <Card className="col-span-3">
+                    <CardHeader>
+                        <CardTitle>Quick Actions</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-2">
+                            <div className="p-4 border rounded-lg hover:bg-muted cursor-pointer transition-colors">
+                                <h4 className="font-semibold">Generate Report</h4>
+                                <p className="text-sm text-muted-foreground">Download the latest user activity report.</p>
+                            </div>
+                            <div className="p-4 border rounded-lg hover:bg-muted cursor-pointer transition-colors">
+                                <h4 className="font-semibold">System Maintenance</h4>
+                                <p className="text-sm text-muted-foreground">Schedule a maintenance window.</p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     );
 }

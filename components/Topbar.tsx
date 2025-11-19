@@ -4,13 +4,15 @@ import { Search, Sun, Moon, Menu } from "lucide-react";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { useTheme } from "@/lib/use-theme";
+import { useSidebar } from "@/lib/sidebar-context";
 
 export function Topbar() {
     const { theme, toggleTheme } = useTheme();
+    const { toggleSidebar } = useSidebar();
 
     return (
         <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6 sticky top-0 z-10">
-            <Button variant="ghost" size="icon" className="md:hidden">
+            <Button variant="ghost" size="icon" className="md:hidden" onClick={ toggleSidebar }>
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Toggle navigation menu</span>
             </Button>
