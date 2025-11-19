@@ -58,19 +58,16 @@ export default function UsersPage() {
         return sorted;
     }, [filteredUsers, sortField, sortOrder]);
 
+    // Reset currentPage when filteredUsers changes
+    const totalPages = Math.ceil(sortedUsers.length / itemsPerPage);
+    const validCurrentPage = currentPage > totalPages && totalPages > 0 ? totalPages : currentPage;
+
     // Paginate sorted users
     const paginatedUsers = useMemo(() => {
-        const startIndex = (currentPage - 1) * itemsPerPage;
+        const startIndex = (validCurrentPage - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
         return sortedUsers.slice(startIndex, endIndex);
-    }, [sortedUsers, currentPage]);
-
-    const totalPages = Math.ceil(sortedUsers.length / itemsPerPage);
-
-    // Reset to page 1 when search changes
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [search]);
+    }, [sortedUsers, validCurrentPage, itemsPerPage]);
 
     const handleSort = (field: SortField) => {
         if (sortField === field) {
@@ -79,6 +76,12 @@ export default function UsersPage() {
             setSortField(field);
             setSortOrder("asc");
         }
+        setCurrentPage(1); // Reset to page 1 when sorting
+    };
+
+    const handleSearchChange = (value: string) => {
+        setSearch(value);
+        setCurrentPage(1); // Reset to page 1 when searching
     };
 
     const handleAdd = () => {
@@ -136,7 +139,7 @@ export default function UsersPage() {
                             <Input
                                 placeholder="Search users..."
                                 value={ search }
-                                onChange={ (e) => setSearch(e.target.value) }
+                                onChange={ (e) => handleSearchChange(e.target.value) }
                                 className="pl-8"
                             />
                         </div>
@@ -219,26 +222,26 @@ export default function UsersPage() {
                             { sortedUsers.length > 0 && (
                                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-4">
                                     <div className="text-sm text-muted-foreground">
-                                        Showing { ((currentPage - 1) * itemsPerPage) + 1 } to { Math.min(currentPage * itemsPerPage, sortedUsers.length) } of { sortedUsers.length } users
+                                        Showing { ((validCurrentPage - 1) * itemsPerPage) + 1 } to { Math.min(validCurrentPage * itemsPerPage, sortedUsers.length) } of { sortedUsers.length } users
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={ () => goToPage(currentPage - 1) }
-                                            disabled={ currentPage === 1 }
+                                            onClick={ () => goToPage(validCurrentPage - 1) }
+                                            disabled={ validCurrentPage === 1 }
                                         >
                                             <ChevronLeft className="h-4 w-4" />
                                             Previous
                                         </Button>
                                         <div className="text-sm">
-                                            Page { currentPage } of { totalPages }
+                                            Page { validCurrentPage } of { totalPages }
                                         </div>
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={ () => goToPage(currentPage + 1) }
-                                            disabled={ currentPage === totalPages }
+                                            onClick={ () => goToPage(validCurrentPage + 1) }
+                                            disabled={ validCurrentPage === totalPages }
                                         >
                                             Next
                                             <ChevronRight className="h-4 w-4" />
@@ -258,6 +261,7 @@ export default function UsersPage() {
                 title={ editingUser ? "Edit User" : "Add New User" }
             >
                 <UserForm
+                    key={ editingUser?.id || 'new' }
                     user={ editingUser }
                     onSubmit={ handleFormSubmit }
                     onCancel={ () => setIsModalOpen(false) }

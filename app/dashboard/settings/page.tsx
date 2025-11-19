@@ -19,7 +19,7 @@ export default function SettingsPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Profile Information</CardTitle>
-                        <CardDescription>Update your account's profile information and email address.</CardDescription>
+                        <CardDescription>Update your account&apos;s profile information and email address.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="grid gap-2">

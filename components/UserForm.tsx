@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
 import { User, UserStatus } from "@/lib/store";
@@ -16,18 +16,6 @@ export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
     const [email, setEmail] = useState(user?.email || "");
     const [status, setStatus] = useState<UserStatus>(user?.status || "Active");
     const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
-
-    useEffect(() => {
-        if (user) {
-            setName(user.name);
-            setEmail(user.email);
-            setStatus(user.status);
-        } else {
-            setName("");
-            setEmail("");
-            setStatus("Active");
-        }
-    }, [user]);
 
     const validate = () => {
         const newErrors: { name?: string; email?: string } = {};
