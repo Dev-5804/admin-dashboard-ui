@@ -23,7 +23,7 @@ export function Topbar() {
                         <Input
                             type="search"
                             placeholder="Search..."
-                            className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
+                            className="w-full appearance-none bg-background pl-8 shadow-none sm:w-3/4 md:w-2/3 lg:w-1/2 xl:w-1/3"
                         />
                     </div>
                 </form>

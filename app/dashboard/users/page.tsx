@@ -161,7 +161,7 @@ export default function UsersPage() {
                                                 <ArrowUpDown className="h-3 w-3" />
                                             </button>
                                         </TableHead>
-                                        <TableHead className="hidden md:table-cell">
+                                        <TableHead className="hidden sm:table-cell">
                                             <button
                                                 onClick={ () => handleSort("email") }
                                                 className="flex items-center gap-1 hover:text-foreground transition-colors"
@@ -170,7 +170,7 @@ export default function UsersPage() {
                                                 <ArrowUpDown className="h-3 w-3" />
                                             </button>
                                         </TableHead>
-                                        <TableHead className="hidden md:table-cell">
+                                        <TableHead className="hidden sm:table-cell">
                                             <button
                                                 onClick={ () => handleSort("status") }
                                                 className="flex items-center gap-1 hover:text-foreground transition-colors"
@@ -193,8 +193,8 @@ export default function UsersPage() {
                                         paginatedUsers.map((user) => (
                                             <TableRow key={ user.id }>
                                                 <TableCell className="font-medium">{ user.name }</TableCell>
-                                                <TableCell className="hidden md:table-cell">{ user.email }</TableCell>
-                                                <TableCell className="hidden md:table-cell">
+                                                <TableCell className="hidden sm:table-cell">{ user.email }</TableCell>
+                                                <TableCell className="hidden sm:table-cell">
                                                     <Badge variant={ user.status === "Active" ? "success" : "secondary" }>
                                                         { user.status }
                                                     </Badge>
@@ -217,7 +217,7 @@ export default function UsersPage() {
 
                             {/* Pagination Controls */ }
                             { sortedUsers.length > 0 && (
-                                <div className="flex items-center justify-between mt-4">
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-4">
                                     <div className="text-sm text-muted-foreground">
                                         Showing { ((currentPage - 1) * itemsPerPage) + 1 } to { Math.min(currentPage * itemsPerPage, sortedUsers.length) } of { sortedUsers.length } users
                                     </div>

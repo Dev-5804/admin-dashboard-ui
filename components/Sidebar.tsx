@@ -28,7 +28,7 @@ export function Sidebar() {
             ) }
 
             <aside className={ cn(
-                "fixed inset-y-0 left-0 z-50 w-64 flex-col border-r bg-card text-card-foreground transition-transform duration-300 ease-in-out md:sticky md:top-0 md:translate-x-0 md:h-screen md:flex",
+                "fixed inset-y-0 left-0 z-50 w-64 flex flex-col border-r bg-card text-card-foreground transition-transform duration-300 ease-in-out md:relative md:translate-x-0 md:w-[200px] lg:w-[240px] xl:w-[280px]",
                 isOpen ? "translate-x-0" : "-translate-x-full"
             ) }>
                 <div className="flex h-14 items-center justify-between border-b px-4 lg:h-[60px] lg:px-6">
@@ -40,7 +40,7 @@ export function Sidebar() {
                     </Button>
                 </div>
                 <div className="flex-1 overflow-auto py-2">
-                    <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
+                    <nav className="grid items-start px-2 text-sm font-medium md:px-3 lg:px-4">
                         { navItems.map((item) => {
                             const Icon = item.icon;
                             const isActive = pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
@@ -50,7 +50,7 @@ export function Sidebar() {
                                     href={ item.href }
                                     onClick={ closeSidebar }
                                     className={ cn(
-                                        "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary",
+                                        "flex items-center gap-2 rounded-lg px-2 py-2 transition-all hover:text-primary md:gap-3 md:px-3",
                                         isActive
                                             ? "bg-muted text-primary"
                                             : "text-muted-foreground"
